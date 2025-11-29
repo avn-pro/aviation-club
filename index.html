@@ -1,317 +1,897 @@
-<!-- Mission Brief -->
-<section id="mission">
-    <h2>⬢ MISSION BRIEF</h2>
-    <div class="info-grid">
-        <div class="info-card">
-            <h3>Objectives</h3>
-            <p>Development of STEM skills related to aerospace in a collaborative and educational environment. Members learn design and engineering basics, then expand into specialized projects including rocketry, RC planes, simulators, and drones.</p>
-        </div>
-        <div class="info-card">
-            <h3>Operations Schedule</h3>
-            <p><strong>Frequency:</strong> Weekly<br>
-            <strong>Day:</strong> Friday<br>
-            <strong>Location:</strong> Room 614<br>
-            <strong>Status:</strong> Active</p>
-        </div>
-        <div class="info-card">
-            <h3>Command Structure</h3>
-            <p><strong>President:</strong> Rodin Hooshiyar<br>
-            <strong>Vice President:</strong> Danii Babinsky<br>
-            <strong>Advisor:</strong> Stephen Hine</p>
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAHS Aviation Club - Tactical Operations</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://threejs.org/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        :root {
+            --nv-green: #00ff41;
+            --nv-green-soft: #00cc33;
+            --nv-green-glow: #00ff4180;
+            --dark-bg: #0a0e0f;
+            --darker-bg: #050707;
+            --grid-color: #00ff4115;
+            --card-bg: #0d1117;
+            --border-color: #00ff4140;
+            --thruster-red: #ff4100;
+        }
+        body {
+            background: linear-gradient(to bottom, var(--dark-bg), var(--darker-bg));
+            color: #e0e0e0;
+            font-family: 'Rajdhani', sans-serif;
+            overflow-x: hidden;
+            position: relative;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 255, 65, 0.02) 0px,
+                transparent 1px,
+                transparent 2px,
+                rgba(0, 255, 65, 0.02) 3px
+            );
+            pointer-events: none;
+            z-index: 9999;
+            animation: scan 8s linear infinite;
+        }
+        @keyframes scan {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(10px); }
+        }
+        .grid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 40px 40px;
+            opacity: 0.4;
+            pointer-events: none;
+            z-index: 0;
+        }
+        #scan-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 10001;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        #scan-bar {
+            width: 100%;
+            height: 5px;
+            background: var(--nv-green);
+            box-shadow: 0 0 20px var(--nv-green);
+            position: absolute;
+            top: -5px;
+            animation: scan-bar 2s linear forwards;
+        }
+        @keyframes scan-bar {
+            0% { top: -5px; }
+            100% { top: 100%; }
+        }
+        #approval-msg {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2em;
+            color: var(--nv-green-soft);
+            text-shadow: 0 0 20px var(--nv-green-glow);
+            opacity: 0;
+            animation: approve-flash 1s 2s forwards;
+        }
+        @keyframes approve-flash {
+            0% { opacity: 0; transform: scale(0.5); }
+            50% { opacity: 1; transform: scale(1.2); }
+            100% { opacity: 0; transform: scale(1); }
+        }
+        #badge-creator {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s, visibility 0.5s;
+            backdrop-filter: blur(5px);
+        }
+        #badge-creator.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+        .badge-container {
+            background: var(--card-bg);
+            border: 3px solid var(--nv-green-soft);
+            padding: 40px;
+            max-width: 600px;
+            box-shadow: 0 0 50px var(--nv-green-glow);
+            position: relative;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 50px var(--nv-green-glow); }
+            50% { box-shadow: 0 0 80px var(--nv-green-soft); }
+        }
+        .badge-preview {
+            width: 350px;
+            height: 220px;
+            background: linear-gradient(135deg, #1a1a1a 0%, #0d1117 100%);
+            border: 2px solid var(--nv-green-soft);
+            margin: 20px auto;
+            padding: 20px;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+        .badge-header {
+            text-align: center;
+            border-bottom: 1px solid var(--nv-green-soft);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .badge-eagle {
+            font-size: 40px;
+            margin-bottom: 5px;
+        }
+        .badge-school {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 11px;
+            color: var(--nv-green-soft);
+            letter-spacing: 2px;
+        }
+        .badge-info {
+            margin-top: 15px;
+            text-align: center;
+        }
+        .badge-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #333;
+            margin: 0 auto 10px;
+            object-fit: cover;
+            border: 1px solid var(--nv-green-soft);
+        }
+        .badge-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 24px;
+            color: #fff;
+            margin-bottom: 5px;
+        }
+        .badge-rank {
+            color: var(--nv-green-soft);
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        .badge-id {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            font-size: 10px;
+            color: #666;
+            font-family: 'Orbitron', sans-serif;
+        }
+        #barcode-preview {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            width: 100px;
+            height: 30px;
+        }
+        #flag-preview {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 30px;
+            height: 20px;
+        }
+        .badge-form label {
+            display: block;
+            color: var(--nv-green-soft);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+        .badge-form input, .badge-form select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            background: rgba(0, 255, 65, 0.05);
+            border: 1px solid var(--nv-green-soft);
+            color: #fff;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 16px;
+        }
+        .badge-form input:focus, .badge-form select:focus {
+            outline: none;
+            box-shadow: 0 0 10px var(--nv-green-glow);
+        }
+        .access-btn {
+            background: transparent;
+            border: 2px solid var(--nv-green-soft);
+            color: var(--nv-green-soft);
+            padding: 15px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            width: 100%;
+        }
+        .access-btn:hover {
+            background: var(--nv-green-soft);
+            color: #000;
+            box-shadow: 0 0 20px var(--nv-green-soft);
+        }
+        #altitude-tracker {
+            position: fixed;
+            right: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 60px;
+            height: 400px;
+            background: var(--card-bg);
+            border: 1px solid var(--nv-green-soft);
+            padding: 10px;
+            text-align: center;
+            font-size: 0.8em;
+            overflow: hidden;
+        }
+        .altitude-track {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 2px;
+            height: 100%;
+            background: repeating-linear-gradient(0deg, var(--nv-green-soft) 0 5px, transparent 5px 10px);
+            transform: translateX(-50%);
+            animation: dash-move 1s linear infinite;
+        }
+        @keyframes dash-move {
+            0% { transform: translateX(-50%) translateY(0); }
+            100% { transform: translateX(-50%) translateY(10px); }
+        }
+        .altitude-needle {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--nv-green-soft);
+            box-shadow: 0 0 10px var(--nv-green-soft);
+            transition: top 0.1s;
+        }
+        .milestone {
+            position: absolute;
+            right: 10px;
+            font-size: 0.7em;
+            color: var(--nv-green-soft);
+        }
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(5, 7, 7, 0.85);
+            border-bottom: 2px solid var(--nv-green-soft);
+            padding: 15px 0;
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.2);
+            z-index: 999;
+            backdrop-filter: blur(10px);
+            transition: background 0.3s;
+        }
+        header.scrolled {
+            background: rgba(5, 7, 7, 0.95);
+        }
+        nav {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 40px;
+        }
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.6em;
+            color: var(--nv-green-soft);
+            text-shadow: 0 0 10px var(--nv-green-glow);
+        }
+        .nav-links {
+            list-style: none;
+            display: flex;
+        }
+        .nav-links li {
+            margin-left: 30px;
+        }
+        .nav-links a {
+            color: #e0e0e0;
+            text-decoration: none;
+            font-size: 1.1em;
+            transition: color 0.3s;
+            position: relative;
+        }
+        .nav-links a:hover {
+            color: var(--nv-green-soft);
+            text-shadow: 0 0 5px var(--nv-green-soft);
+        }
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0%;
+            height: 1px;
+            background: var(--nv-green-soft);
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: width 0.3s ease-out;
+        }
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+        #hero {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: opacity 0.5s;
+            overflow: hidden;
+        }
+        #threejs-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        .hero-content {
+            z-index: 2;
+            text-align: center;
+            padding: 20px;
+            background: radial-gradient(circle, rgba(10, 14, 15, 0.7) 0%, rgba(10, 14, 15, 0) 70%);
+        }
+        .hero-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 4em;
+            color: var(--nv-green-soft);
+            text-shadow: 0 0 20px var(--nv-green-glow);
+            animation: flicker 3s infinite alternate;
+        }
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.9; }
+        }
+        .hero-tagline {
+            font-size: 1.5em;
+        }
+        section {
+            padding: 80px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 30px;
+            margin: 20px 0;
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.1);
+            clip-path: polygon(
+                0 15px, 
+                15px 0, 
+                calc(100% - 15px) 0, 
+                100% 15px, 
+                100% calc(100% - 15px), 
+                calc(100% - 15px) 100%, 
+                15px 100%, 
+                0 calc(100% - 15px)
+            );
+        }
+        .card-header {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2em;
+            color: var(--nv-green-soft);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--nv-green-soft);
+            position: relative;
+        }
+        .card-header::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100px;
+            height: 3px;
+            background: var(--nv-green-soft);
+            box-shadow: 0 0 10px var(--nv-green-soft);
+        }
+        .card p, .card li {
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+        .card iframe {
+            border: 1px solid var(--nv-green-soft);
+            clip-path: polygon(0 5px, 5px 0, calc(100% - 5px) 0, 100% 5px, 100% calc(100% - 5px), calc(100% - 5px) 100%, 5px 100%, 0 calc(100% - 5px));
+        }
+        .blueprint-container {
+            background: #00000040;
+            border: 1px dashed var(--nv-green-soft);
+            padding: 20px;
+            margin-top: 20px;
+            position: relative;
+        }
+        .blueprint-svg {
+            width: 100%;
+            max-width: 600px;
+            height: auto;
+            stroke: var(--nv-green-soft);
+            stroke-width: 1;
+            fill: none;
+            stroke-dasharray: 4 4;
+            animation: dash-animate 1s linear infinite;
+        }
+        @keyframes dash-animate {
+            to { stroke-dashoffset: -8; }
+        }
+        .blueprint-annotation {
+            position: absolute;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+            color: var(--nv-green-soft);
+            background: var(--dark-bg);
+            padding: 2px 5px;
+            border: 1px solid var(--border-color);
+        }
+        .anno-1 { top: 20%; left: 65%; }
+        .anno-2 { top: 50%; left: 30%; }
+        .anno-3 { top: 70%; left: 55%; }
+        #radar {
+            text-align: center;
+            background: var(--darker-bg);
+            padding-top: 60px;
+            padding-bottom: 60px;
+            margin: 0 auto;
+        }
+        .radar-container {
+            width: 300px;
+            height: 300px;
+            margin: 0 auto;
+            position: relative;
+            background: conic-gradient(from 0deg, rgba(0,255,65,0.2) 0deg 60deg, transparent 60deg 360deg);
+            border-radius: 50%;
+            box-shadow: 0 0 40px var(--nv-green-glow);
+            animation: rotate 4s linear infinite;
+            border: 1px solid var(--border-color);
+        }
+        .radar-container::before, .radar-container::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            border: 1px dashed var(--nv-green-glow);
+        }
+        .radar-container::before {
+            width: 66%;
+            height: 66%;
+        }
+        .radar-container::after {
+            width: 33%;
+            height: 33%;
+        }
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .radar-blip {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: var(--nv-green-soft);
+            border-radius: 50%;
+            box-shadow: 0 0 20px var(--nv-green-soft);
+            animation: blip 1.5s infinite;
+        }
+        @keyframes blip {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.7); }
+        }
+        .blip1 { top: 20%; left: 60%; animation-delay: 0s; }
+        .blip2 { top: 40%; left: 30%; animation-delay: 0.5s; }
+        .blip3 { top: 70%; left: 80%; animation-delay: 1s; }
+        .blip4 { top: 10%; left: 50%; animation-delay: 1.5s; }
+        .blip5 { top: 60%; left: 20%; animation-delay: 0.8s; }
+        #team .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        .team-badge {
+            background: linear-gradient(135deg, #1a1a1a 0%, #0d1117 100%);
+            border: 2px solid var(--nv-green-soft);
+            padding: 15px;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+        footer {
+            background: var(--darker-bg);
+            padding: 40px 20px;
+            text-align: center;
+            border-top: 1px solid var(--nv-green-soft);
+            margin-top: 40px;
+        }
+        @media (max-width: 768px) {
+            nav {
+                flex-direction: column;
+                padding: 10px 20px;
+            }
+            .nav-links {
+                margin-top: 10px;
+            }
+            .nav-links li {
+                margin: 0 10px;
+            }
+            .logo {
+                font-size: 1.3em;
+            }
+            #hero {
+                text-align: center;
+            }
+            .hero-title {
+                font-size: 2.5em;
+            }
+            .hero-tagline {
+                font-size: 1.1em;
+            }
+            section {
+                padding: 60px 20px;
+            }
+            .card {
+                clip-path: none;
+            }
+            #altitude-tracker {
+                display: none;
+            }
+            .blueprint-annotation {
+                font-size: 10px;
+                padding: 1px 3px;
+            }
+            .anno-1 { top: 15%; left: 60%; }
+            .anno-2 { top: 50%; left: 20%; }
+            .anno-3 { top: 75%; left: 55%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+    
+    <div id="scan-overlay">
+        <div id="scan-bar"></div>
+        <div id="approval-msg">CLEARANCE GRANTED</div>
+    </div>
+    
+    <div id="badge-creator">
+        <div class="badge-container">
+            <h2 style="font-family: 'Orbitron'; color: var(--nv-green-soft);">Security Clearance Required</h2>
+            <p>Enter Pilot Details for Ops Access</p>
+            <div class="badge-preview">
+                <div class="badge-header">
+                    <div class="badge-eagle">🦅</div>
+                    <div class="badge-school">LAHS AVIATION OPS</div>
+                </div>
+                <img id="flag-preview" src="https://flagcdn.com/w20/us.png" alt="Flag">
+                <img class="badge-photo" id="photo-preview" src="" alt="Pilot Photo">
+                <div class="badge-info">
+                    <div class="badge-name" id="name-preview">Pilot Name</div>
+                    <div class="badge-rank" id="rank-preview">Rank</div>
+                    <div class="badge-id" id="id-preview">ID: CLASSIFIED</div>
+                </div>
+                <canvas id="barcode-preview"></canvas>
+            </div>
+            <form class="badge-form">
+                <label for="pilot-name">Pilot Name</label>
+                <input type="text" id="pilot-name" placeholder="Enter Name">
+                <label for="pilot-rank">Rank/Role</label>
+                <select id="pilot-rank">
+                    <option>Wing Commander</option>
+                    <option>Flight Lieutenant</option>
+                    <option>Ace Pilot</option>
+                    <option>Cadet</option>
+                </select>
+                <label for="pilot-flag">Country Flag</label>
+                <select id="pilot-flag">
+                    <option value="us">USA 🇺🇸</option>
+                    <option value="ca">Canada 🇨🇦</option>
+                    <option value="gb">UK 🇬🇧</option>
+                    <option value="fr">France 🇫🇷</option>
+                    <option value="de">Germany 🇩🇪</option>
+                    <option value="jp">Japan 🇯🇵</option>
+                </select>
+                <label for="pilot-photo">Upload Photo</label>
+                <input type="file" id="pilot-photo" accept="image/*">
+                <button type="button" class="access-btn" id="grant-access">Grant Clearance</button>
+            </form>
         </div>
     </div>
-
-    <div style="margin-top: 80px; text-align: center;">
-        <h3 style="font-family: 'Orbitron', sans-serif; color: var(--nv-green-soft); font-size: 2em; margin-bottom: 30px;">NEXT MISSION BRIEFING</h3>
-        <div id="countdown">LOADING...</div>
-    </div>
-</section>
-
-<!-- Schematics Section -->
-<section id="schematics">
-    <h2>⬢ AIRCRAFT SCHEMATICS</h2>
-    <div class="blueprint-section">
-        <h3>F-22 RAPTOR BLUEPRINT</h3>
-        <div class="blueprint-container">
-            <svg class="blueprint-svg" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
-                <path d="M100 10 L190 50 L100 90 L90 70 L90 60 L40 75 L30 70 L90 50 L90 30 L30 30 L40 25 L90 40 L100 10 Z"/>
-                <path d="M150 60 L170 65 L165 70 L150 65 Z" stroke="#ff4100" stroke-width="2"/>
-                <path d="M150 70 L170 75 L165 80 L150 75 Z" stroke="#ff4100" stroke-width="2"/>
-                <circle cx="100" cy="50" r="3" fill="#00cc33"/>
-                <circle cx="160" cy="50" r="2" fill="#00cc33"/>
-            </svg>
-            <div class="blueprint-annotation anno-1">Stealth Hull</div>
-            <div class="blueprint-annotation anno-2">Sensor Array</div>
-            <div class="blueprint-annotation anno-3">Missile Bay</div>
+    
+    <header>
+        <nav>
+            <div class="logo">LAHS AVIATION OPS</div>
+            <ul class="nav-links">
+                <li><a href="#hero">Home</a></li>
+                <li><a href="#about">Mission</a></li>
+                <li><a href="#schematics">Schematics</a></li>
+                <li><a href="#radar">Radar</a></li>
+                <li><a href="#events">Operations</a></li>
+                <li><a href="#team">Team</a></li>
+                <li><a href="#join">Enlist</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <section id="hero">
+        <canvas id="threejs-canvas"></canvas>
+        <div class="hud-overlay">
+            <div class="hud-horizontal hud-line"></div>
+            <div class="hud-vertical hud-line"></div>
+            <div class="hud-target"></div>
         </div>
-    </div>
-</section>
-
-<!-- Radar Section -->
-<section id="radar-section">
-    <h2 style="color: #fff;">⬢ AIRSPACE RADAR</h2>
-    <div class="radar-container">
-        <div class="radar-blip blip1"></div>
-        <div class="radar-blip blip2"></div>
-        <div class="radar-blip blip3"></div>
-        <div class="radar-blip blip4"></div>
-        <div class="radar-blip blip5"></div>
-    </div>
-    <p style="margin-top: 30px; font-size: 1.2em;">Live Airspace Monitoring • 5 Active Contacts</p>
-</section>
-
-<!-- Active Operations -->
-<section id="operations">
-    <h2>⬢ ACTIVE OPERATIONS</h2>
-    <div class="info-grid">
-        <div class="info-card">
-            <h3>Rocketry Division</h3>
-            <p>Design, build, and launch model rockets. Learn propulsion systems, aerodynamics, flight dynamics, and recovery systems. Participate in competitions and launches.</p>
+        <div class="hero-content">
+            <h1 class="hero-title">Tactical Operations Center</h1>
+            <p class="hero-tagline">Explore the Skies – Drones, Sims, Jets & Missiles</p>
         </div>
-        <div class="info-card">
-            <h3>RC Aircraft</h3>
-            <p>Remote-controlled aircraft construction and flight operations. Master control systems, aircraft handling, and aerobatic maneuvers.</p>
+    </section>
+    
+    <section id="about">
+        <div class="card">
+            <div class="card-header">Mission Briefing</div>
+            <p>At Lincoln High Aviation Club, we conquer the skies with drones, flight sims, model building, and field trips. Founded in 2023, join our elite team for aviation adventures! Meetings every Friday during lunch in the robotics lab.</p>
         </div>
-        <div class="info-card">
-            <h3>Drone Operations</h3>
-            <p>UAV design, programming, and autonomous flight. FPV racing, aerial photography, and navigation systems development.</p>
+    </section>
+    
+    <section id="schematics">
+        <div class="card">
+            <div class="card-header">Aircraft Blueprints</div>
+            <p>Analyze classified designs of jets and missiles.</p>
+            <div class="blueprint-container">
+                <svg class="blueprint-svg" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M100 10 L190 50 L100 90 L90 70 L90 60 L40 75 L30 70 L90 50 L90 30 L30 30 L40 25 L90 40 L100 10 Z"/>
+                    <path d="M150 60 L170 65 L165 70 L150 65 Z" fill="none" stroke="red" stroke-width="2"/>
+                    <path d="M150 70 L170 75 L165 80 L150 75 Z" fill="none" stroke="red" stroke-width="2"/>
+                </svg>
+                <div class="blueprint-annotation anno-1">Hypersonic Engine</div>
+                <div class="blueprint-annotation anno-2">Sensor Array</div>
+                <div class="blueprint-annotation anno-3">Payload Bay</div>
+            </div>
         </div>
-        <div class="info-card">
-            <h3>Flight Simulation</h3>
-            <p>Advanced flight simulator operations for both fixed-wing and rotary aircraft. Learn instrument flight, navigation, and emergency procedures.</p>
+    </section>
+    
+    <section id="radar">
+        <div class="card">
+            <div class="card-header">Airspace Radar</div>
+            <div class="radar-container">
+                <div class="radar-blip blip1"></div>
+                <div class="radar-blip blip2"></div>
+                <div class="radar-blip blip3"></div>
+                <div class="radar-blip blip4"></div>
+                <div class="radar-blip blip5"></div>
+            </div>
+            <p>Monitoring local airspace – blips represent active flights.</p>
         </div>
-        <div class="info-card">
-            <h3>Design & Engineering</h3>
-            <p>CAD modeling, 3D printing, and aerospace engineering fundamentals. Create custom designs for all vehicle types.</p>
-        </div>
-        <div class="info-card">
-            <h3>Specialized Projects</h3>
-            <p>Pursue focused projects in any aerospace discipline with mentorship and resources.</p>
-        </div>
-    </div>
-</section>
-
-<!-- Team Section -->
-<section id="team">
-    <h2>⬢ SQUADRON ROSTER</h2>
-    <div class="team-grid" id="team-grid">
-        <p style="text-align: center; color: #888; grid-column: 1 / -1;">No team members yet. Create your badge to join!</p>
-    </div>
-</section>
-
-<!-- Join Section -->
-<section id="join">
-    <h2>⬢ JOIN THE SQUADRON</h2>
-    <div class="info-grid">
-        <div class="info-card">
-            <h3>Requirements</h3>
+    </section>
+    
+    <section id="events">
+        <div class="card">
+            <div class="card-header">Upcoming Operations</div>
             <ul>
-                <li>Los Altos High School student</li>
-                <li>Interest in aerospace, aviation, or engineering</li>
-                <li>No prior experience required</li>
-                <li>Commitment to Friday operations</li>
+                <li>Every Friday during Lunch: Club Meeting - Robotics Lab</li>
             </ul>
         </div>
-        <div class="info-card">
-            <h3>Benefits</h3>
-            <ul>
-                <li>Hands-on STEM experience</li>
-                <li>Collaborative project work</li>
-                <li>Access to flight simulators</li>
-                <li>Rocket and drone operations</li>
-                <li>Leadership opportunities</li>
-            </ul>
+    </section>
+    
+    <section id="team">
+        <div class="card">
+            <div class="card-header">Team Members</div>
+            <div id="team-grid" class="team-grid"></div>
         </div>
+    </section>
+    
+    <section id="join">
+        <div class="card">
+            <div class="card-header">Enlist Now</div>
+            <p>Sign up for the aviation club!</p>
+        </div>
+    </section>
+    
+    <footer>
+        <p>&copy; 2025 LAHS Aviation Club – Cleared for Takeoff</p>
+    </footer>
+    
+    <div id="altitude-tracker">
+        <div class="altitude-track"></div>
+        <div class="altitude-needle" id="needle"></div>
+        <div class="milestone" style="top: 90%;">0 ft: Grounded</div>
+        <div class="milestone" style="top: 70%;">10k ft: Sim Win</div>
+        <div class="milestone" style="top: 50%;">20k ft: Drone Launch</div>
+        <div class="milestone" style="top: 30%;">30k ft: Jet Tour</div>
+        <div class="milestone" style="top: 10%;">40k ft: Stratosphere</div>
     </div>
+    
+    <script>
+        // Badge Logic
+        const badgeCreator = document.getElementById('badge-creator');
+        const scanOverlay = document.getElementById('scan-overlay');
+        const nameInput = document.getElementById('pilot-name');
+        const rankSelect = document.getElementById('pilot-rank');
+        const flagSelect = document.getElementById('pilot-flag');
+        const photoInput = document.getElementById('pilot-photo');
+        const namePreview = document.getElementById('name-preview');
+        const rankPreview = document.getElementById('rank-preview');
+        const flagPreview = document.getElementById('flag-preview');
+        const photoPreview = document.getElementById('photo-preview');
+        const barcodeCanvas = document.getElementById('barcode-preview');
+        const grantButton = document.getElementById('grant-access');
+        const teamGrid = document.getElementById('team-grid');
 
-    <div style="margin-top: 80px;">
-        <h3 style="font-family: 'Orbitron', sans-serif; text-align: center; color: var(--nv-green-soft); margin-bottom: 40px; font-size: 2.5em;">TACTICAL COMMUNICATIONS</h3>
-        
-        <div class="placeholder-box">
-            <h3>MISSION STATEMENT</h3>
-            <p>Insert your official mission statement here</p>
-        </div>
+        let members = JSON.parse(localStorage.getItem('members')) || [];
 
-        <div class="placeholder-box">
-            <h3>CONTACT PROTOCOLS</h3>
-            <p>Insert contact email, Discord, or Instagram links here</p>
-        </div>
+        function updatePreview() {
+            namePreview.textContent = nameInput.value || 'Pilot Name';
+            rankPreview.textContent = rankSelect.value || 'Rank';
+            flagPreview.src = `https://flagcdn.com/w20/${flagSelect.value}.png`;
+            JsBarcode(barcodeCanvas, nameInput.value || 'CLASSIFIED', {
+                format: "code128",
+                lineColor: "#00ff41",
+                width: 1,
+                height: 30,
+                fontSize: 10,
+                background: "transparent"
+            });
+        }
 
-        <div class="placeholder-box">
-            <h3>RECRUITMENT FORM</h3>
-            <p>Embed your Google Form here:</p>
-            <p style="font-size: 0.95em; margin-top: 15px;">&lt;iframe src="YOUR_GOOGLE_FORM_LINK" width="100%" height="600"&gt;&lt;/iframe&gt;</p>
-        </div>
-
-        <div class="placeholder-box">
-            <h3>OPERATIONS CALENDAR</h3>
-            <p>Embed your Google Calendar here:</p>
-            <p style="font-size: 0.95em; margin-top: 15px;">&lt;iframe src="YOUR_GOOGLE_CALENDAR_LINK" width="100%" height="600"&gt;&lt;/iframe&gt;</p>
-        </div>
-    </div>
-</section>
-
-<footer>
-    <p style="font-family: 'Orbitron', sans-serif; color: var(--nv-green-soft); font-size: 1.3em; margin-bottom: 15px;">⬢ LOS ALTOS HIGH SCHOOL AVIATION CLUB ⬢</p>
-    <p>AEROSPACE OPERATIONS DIVISION • ROOM 614 • FRIDAY OPERATIONS</p>
-    <p style="margin-top: 25px; font-size: 0.9em;">Deployed on GitHub Pages • All Systems Operational</p>
-</footer>
-
-<script>
-    // Badge Creator Logic
-    const badgeCreator = document.getElementById('badge-creator');
-    const nameInput = document.getElementById('pilot-name');
-    const rankSelect = document.getElementById('pilot-rank');
-    const flagSelect = document.getElementById('pilot-flag');
-    const photoInput = document.getElementById('pilot-photo');
-    const namePreview = document.getElementById('name-preview');
-    const rankPreview = document.getElementById('rank-preview');
-    const flagPreview = document.getElementById('preview-flag');
-    const photoPreview = document.getElementById('photo-preview');
-    const idPreview = document.getElementById('id-preview');
-    const grantButton = document.getElementById('grant-access');
-    const teamGrid = document.getElementById('team-grid');
-
-    // Load saved members
-    let members = JSON.parse(localStorage.getItem('aviationMembers')) || [];
-
-    // Update preview in real-time
-    nameInput.addEventListener('input', () => {
-        namePreview.textContent = nameInput.value || 'PILOT NAME';
-    });
-
-    rankSelect.addEventListener('change', () => {
-        rankPreview.textContent = rankSelect.value;
-    });
-
-    flagSelect.addEventListener('change', () => {
-        flagPreview.textContent = flagSelect.value;
-    });
-
-    photoInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
+        nameInput.addEventListener('input', updatePreview);
+        rankSelect.addEventListener('change', updatePreview);
+        flagSelect.addEventListener('change', updatePreview);
+        photoInput.addEventListener('change', (e) => {
             const reader = new FileReader();
-            reader.onload = (event) => {
-                photoPreview.src = event.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-    });
-
-    // Generate random ID
-    idPreview.textContent = Math.floor(Math.random() * 99999).toString().padStart(5, '0');
-
-    // Grant access and save badge
-    grantButton.addEventListener('click', () => {
-        const name = nameInput.value.trim();
-        if (!name) {
-            alert('Please enter your pilot name');
-            return;
-        }
-
-        // Save member
-        const member = {
-            name: name,
-            rank: rankSelect.value,
-            flag: flagSelect.value,
-            photo: photoPreview.src || '',
-            id: idPreview.textContent
-        };
-
-        members.push(member);
-        localStorage.setItem('aviationMembers', JSON.stringify(members));
-
-        // Hide badge creator
-        badgeCreator.classList.add('hidden');
-
-        // Render team
-        renderTeam();
-    });
-
-    // Render team members
-    function renderTeam() {
-        if (members.length === 0) {
-            teamGrid.innerHTML = '<p style="text-align: center; color: #888; grid-column: 1 / -1;">No team members yet. Create your badge to join!</p>';
-            return;
-        }
-
-        teamGrid.innerHTML = '';
-        members.forEach(member => {
-            const badge = document.createElement('div');
-            badge.className = 'team-badge';
-            badge.innerHTML = `
-                <div class="badge-flag">${member.flag}</div>
-                ${member.photo ? `<img src="${member.photo}" class="badge-photo" alt="${member.name}">` : '<div class="badge-photo"></div>'}
-                <div class="badge-name" style="font-size: 18px; margin-top: 10px;">${member.name}</div>
-                <div class="badge-rank" style="font-size: 14px;">${member.rank}</div>
-                <div style="font-size: 11px; color: #666; margin-top: 5px;">ID: ${member.id}</div>
-            `;
-            teamGrid.appendChild(badge);
+            reader.onload = () => photoPreview.src = reader.result;
+            reader.readAsDataURL(e.target.files[0]);
         });
-    }
 
-    // Altitude tracker
-    window.addEventListener('scroll', () => {
-        const scrollPercent = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
-        const indicator = document.getElementById('altitude-indicator');
-        indicator.style.top = scrollPercent + '%';
-    });
+        grantButton.addEventListener('click', () => {
+            scanOverlay.style.display = 'flex';
+            setTimeout(() => {
+                scanOverlay.style.display = 'none';
+                badgeCreator.classList.add('hidden');
+                // Save member
+                members.push({
+                    name: nameInput.value,
+                    rank: rankSelect.value,
+                    flag: flagSelect.value,
+                    photo: photoPreview.src
+                });
+                localStorage.setItem('members', JSON.stringify(members));
+                renderMembers();
+            }, 3000);
+        });
 
-    // Countdown to next Friday
-    function updateCountdown() {
-        const now = new Date();
-        const currentDay = now.getDay();
-        const daysUntilFriday = (5 - currentDay + 7) % 7 || 7;
-        
-        const nextFriday = new Date(now);
-        nextFriday.setDate(now.getDate() + daysUntilFriday);
-        nextFriday.setHours(14, 30, 0, 0);
-        
-        const diff = nextFriday - now;
-        
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-        
-        document.getElementById('countdown').textContent = 
-            `${days}D ${hours}H ${minutes}M ${seconds}S`;
-    }
+        function renderMembers() {
+            teamGrid.innerHTML = '';
+            members.forEach(member => {
+                const badge = document.createElement('div');
+                badge.className = 'team-badge';
+                badge.innerHTML = `
+                    <img src="https://flagcdn.com/w20/${member.flag}.png" alt="Flag">
+                    <img src="${member.photo}" class="badge-photo" alt="Photo">
+                    <div class="badge-info">
+                        <div class="badge-name">${member.name}</div>
+                        <div class="badge-rank">${member.rank}</div>
+                    </div>
+                `;
+                teamGrid.appendChild(badge);
+            });
+        }
 
-    updateCountdown();
-    setInterval(updateCountdown, 1000);
-
-    // Section visibility on scroll
-    const sections = document.querySelectorAll('section');
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('visible');
+        // 3D Jet
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('threejs-canvas'), alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(5, 5, 5);
+        scene.add(directionalLight);
+        const loader = new THREE.GLTFLoader();
+        loader.load('f16.glb', (gltf) => {
+            const model = gltf.scene;
+            model.scale.set(0.5, 0.5, 0.5);
+            scene.add(model);
+            function animate() {
+                requestAnimationFrame(animate);
+                model.rotation.y += 0.005;
+                renderer.render(scene, camera);
             }
+            animate();
         });
-    }, { threshold: 0.1 });
-
-    sections.forEach(section => observer.observe(section));
-
-    // Smooth scrolling for nav links
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
+        camera.position.z = 5;
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
         });
-    });
 
-    // Initialize
-    renderTeam();
+        // Altitude Scroll
+        const needle = document.getElementById('needle');
+        window.addEventListener('scroll', () => {
+            const scrollPercent = (document.documentElement.scrollTop / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+            needle.style.top = `${100 - scrollPercent}%`;
+        });
 
-    // Check if badge was already created
-    window.onload = function() {
-        if (members.length > 0) {
-            badgeCreator.classList.add('hidden');
-        }
-    };
-</script>
+        // Smooth Scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Section Visibility
+        const sections = document.querySelectorAll('section');
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+        sections.forEach(section => observer.observe(section));
+
+        renderMembers();
+        updatePreview();
+    </script>
+</body>
+</html>
+```
